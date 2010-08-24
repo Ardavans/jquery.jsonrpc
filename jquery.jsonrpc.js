@@ -1,9 +1,10 @@
 /*
  * jQuery JSON-RPC Plugin
  *
- * @version: 0.1-ajs(2010-08-23)
+ * @version: 0.2-alpha(2010-08-24)
  * @author hagino3000 <http://twitter.com/hagino3000> (Takashi Nishibayashi)
  * @author alanjds <http://twitter.com/alanjds> (Alan Justino da Silva)
+ * @author MiCHiLU <http://twitter.com/MiCHiLU> (Takanao ENDOH)
  *
  * A JSON-RPC 2.0 implementation for jQuery.
  * JSON-RPC is a stateless, light-weight remote procedure call (RPC) protocol.
