@@ -23,6 +23,8 @@
  *   'data' accepts 'timeout' keyword too, who sets the $.ajax request timeout.
  *   Setting 'debug' to true prints responses to Firebug's console.info
  *
+ *   $.jsonrpcBind(url, method [, callbacks] [, timeout] [, debug]);
+ *
  * Examples:
  *   // A RPC call with named parameters
  *   $.jsonrpc('/rpc', {
@@ -47,6 +49,17 @@
  *     debug : true,
  *     timeout : 500,
  *   });
+ *
+ *   // Bind to RPC call
+ *   var $createUser = $.jsonrpc('/rpc', 'createUser', {
+ *     success : doSomething(response),
+ *     fault : handleFault(response, errordata),
+ *     error : handleError(request, status, error);
+ *   });
+ *   var $notify = $.jsonrpcBind('/rpc', 'notify', 500, true);
+ *   $createUser({name : 'John Smith', userId : '1000'});
+ *   $notify({action : 'login', userId : '1000'});
+ *   $notify({action : 'logout', userId : '1000'});
  *
  * This document is licensed as free software under the terms of the
  * MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -95,6 +108,50 @@
     $.ajax(ajaxopts);
 
     return $;
+  }
+
+  $.jsonrpcBind = $.jsonrpcBind || function(url, method, callbacks, timeout, debug) {
+
+    var jsonrpc = function(params) {
+      var postdata = {
+        jsonrpc : '2.0',
+        method : method || '',
+        params : params || {}
+      }
+      if (callbacks) {
+        postdata.id = rpcid++;
+      }
+
+      debug = debug || false
+
+      var ajaxopts = {
+        url : url,
+        contentType : 'application/json',
+        dataType : 'json',
+        type : 'POST',
+        dataFilter: function(data, type) {
+          if (debug && console != undefined) console.info(data);
+          return JSON.parse(data);
+        },
+        processData : false,
+        data : JSON.stringify(postdata),
+        success : function(resp) {
+          if (resp && !resp.error) return callbacks.success && callbacks.success(resp.result);
+          else if (resp && resp.error) return callbacks.fault && callbacks.fault(resp.error.message, resp.error.data);
+          else return callbacks.fault && callbacks.fault(resp);
+        },
+        error : function(xhr, status, error) {
+          return callbacks.error && callbacks.error(xhr, status, error);
+        }
+      }
+      if (timeout){
+        ajaxopts['timeout'] = timeout
+      }
+
+      $.ajax(ajaxopts);
+    }
+
+    return jsonrpc;
   }
 
 })(jQuery);
